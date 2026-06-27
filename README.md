@@ -1,99 +1,41 @@
-package com.msmp.managers;
+# MSMP — плагин кастомных мобов и спавнеров
 
-import com.msmp.data.CustomSpawner;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.plugin.java.JavaPlugin;
+## Что внутри
 
-import java.io.File;
-import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
+1. **`/msmp create mob <id>`** — создаёт кастомного моба и открывает GUI-редактор:
+   - имя (клик по бирке → ввод нового имени в чат)
+   - здоровье (ЛКМ/ПКМ, Shift — крупный шаг)
+   - тип сущности (зомби, скелет, крипер, странник и т.д. — листается по кругу)
+   - оружие и 4 слота брони (просто положите предмет в слот мышкой, ПКМ — очистить)
+   - количество опыта, выпадающего при убийстве
 
-public class SpawnerManager {
+2. **`/msmp create spawner <id>`** — ставит спавнер в точке, где стоит игрок, и открывает GUI:
+   - кого спавнить: обычный моб Minecraft (ЛКМ листает) или кастомный моб из пункта 1 (ПКМ листает)
+   - частота спавна (в тиках)
+   - радиус спавна
+   - максимум мобов рядом (чтобы не заспамить локацию)
+   - радиус активации по игроку (спавнер "спит", если рядом никого нет)
+   - количество мобов за один тик спавна
 
-    private final JavaPlugin plugin;
-    private final File file;
-    private final Map<String, CustomSpawner> spawners = new LinkedHashMap<>();
+3. **`/msmp edit mob <id>`** / **`/msmp edit spawner <id>`** — повторно открыть редактор.
+4. **`/msmp delete mob|spawner <id>`**, **`/msmp list mob|spawner`** — служебные команды.
 
-    public SpawnerManager(JavaPlugin plugin) {
-        this.plugin = plugin;
-        this.file = new File(plugin.getDataFolder(), "spawners.yml");
-        load();
-    }
+Все данные хранятся в `plugins/MSMP/mobs.yml` и `plugins/MSMP/spawners.yml` и переживают перезапуск сервера — при `onEnable` спавнеры снова запускают свои фоновые задачи.
 
-    public CustomSpawner createSpawner(String id, Location loc) {
-        CustomSpawner sp = new CustomSpawner(id, loc);
-        spawners.put(id.toLowerCase(), sp);
-        save();
-        return sp;
-    }
+## Сборка
 
-    public CustomSpawner getSpawner(String id) {
-        return spawners.get(id == null ? null : id.toLowerCase());
-    }
+1. Установите JDK 17+ и Maven.
+2. **Важно:** в `pom.xml` подставьте версию `paper-api`, точно совпадающую с вашей версией Minecraft (например `1.21.1-R0.1-SNAPSHOT`). Версионная строка "Purpur 26.1.2" не похожа на официальную нумерацию Purpur (там версии вида `1.21.x`) — уточните точную версию Minecraft вашего сервера через `/version` в консоли.
+3. В папке проекта выполните:
+   ```
+   mvn clean package
+   ```
+4. Готовый jar появится в `target/MSMP.jar` — положите его в `plugins/` на сервере Purpur.
 
-    public boolean exists(String id) {
-        return spawners.containsKey(id == null ? null : id.toLowerCase());
-    }
+## Известные ограничения / что можно доработать
 
-    public Map<String, CustomSpawner> getAll() {
-        return spawners;
-    }
-
-    public void delete(String id) {
-        spawners.remove(id.toLowerCase());
-        save();
-    }
-
-    public void load() {
-        spawners.clear();
-        if (!file.exists()) return;
-        FileConfiguration cfg = YamlConfiguration.loadConfiguration(file);
-        for (String id : cfg.getKeys(false)) {
-            String path = id + ".";
-            String worldName = cfg.getString(path + "world");
-            World world = worldName != null ? plugin.getServer().getWorld(worldName) : null;
-            if (world == null) continue; // мир ещё не загружен/удалён — пропускаем
-            double x = cfg.getDouble(path + "x");
-            double y = cfg.getDouble(path + "y");
-            double z = cfg.getDouble(path + "z");
-            Location loc = new Location(world, x, y, z);
-
-            CustomSpawner sp = new CustomSpawner(id, loc);
-            sp.setSpawnTarget(cfg.getString(path + "spawnTarget", "ZOMBIE"));
-            sp.setSpawnRateTicks(cfg.getInt(path + "spawnRateTicks", 200));
-            sp.setSpawnRadius(cfg.getInt(path + "spawnRadius", 4));
-            sp.setMaxNearbyEntities(cfg.getInt(path + "maxNearbyEntities", 6));
-            sp.setPlayerActivationRadius(cfg.getInt(path + "playerActivationRadius", 16));
-            sp.setSpawnCount(cfg.getInt(path + "spawnCount", 1));
-            spawners.put(id.toLowerCase(), sp);
-        }
-    }
-
-    public void save() {
-        FileConfiguration cfg = new YamlConfiguration();
-        for (CustomSpawner sp : spawners.values()) {
-            String path = sp.getId() + ".";
-            Location loc = sp.getLocation();
-            cfg.set(path + "world", loc.getWorld().getName());
-            cfg.set(path + "x", loc.getX());
-            cfg.set(path + "y", loc.getY());
-            cfg.set(path + "z", loc.getZ());
-            cfg.set(path + "spawnTarget", sp.getSpawnTarget());
-            cfg.set(path + "spawnRateTicks", sp.getSpawnRateTicks());
-            cfg.set(path + "spawnRadius", sp.getSpawnRadius());
-            cfg.set(path + "maxNearbyEntities", sp.getMaxNearbyEntities());
-            cfg.set(path + "playerActivationRadius", sp.getPlayerActivationRadius());
-            cfg.set(path + "spawnCount", sp.getSpawnCount());
-        }
-        try {
-            if (!plugin.getDataFolder().exists()) plugin.getDataFolder().mkdirs();
-            cfg.save(file);
-        } catch (IOException e) {
-            plugin.getLogger().severe("Не удалось сохранить spawners.yml: " + e.getMessage());
-        }
-    }
-}
+- Тип моба в редакторе ограничен заранее заданным списком безопасных EntityType (см. `MobEditorGUI.MOB_TYPES`) — список легко расширить.
+- Слот оружия принимает любой предмет, слоты брони — только реальные предметы брони (список в `GUIListener.ARMOR_OK`).
+- Спавнер привязан к точке в мире (Location), а не к блоку спавнера — он не заменяет блок `minecraft:spawner` физически, а работает как "невидимый" генератор мобов рядом с указанной точкой. Если нужно, чтобы он визуально выглядел как ванильный спавнер, добавьте установку блока `Material.SPAWNER` в `MSMPCommand.handleCreate` при создании.
+- Переименование моба ловится через `AsyncChatEvent` (Paper API). Если сборка идёт под чистый Spigot — замените на `AsyncPlayerChatEvent`.
+- Урон/AI кастомных мобов не переопределяется — они используют ванильное поведение выбранного EntityType, только с другим здоровьем/именем/экипировкой/дропом опыта.

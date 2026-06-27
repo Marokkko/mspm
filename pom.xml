@@ -1,103 +1,47 @@
-package com.msmp.managers;
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-import com.msmp.data.CustomMob;
-import org.bukkit.Material;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.EntityType;
-import org.bukkit.plugin.java.JavaPlugin;
+    <groupId>com.msmp</groupId>
+    <artifactId>MSMP</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
 
-import java.io.File;
-import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- ВАЖНО: подставьте версию API, соответствующую вашей версии Minecraft/Purpur,
+             например 1.20.6-R0.1-SNAPSHOT, 1.21.1-R0.1-SNAPSHOT и т.д.
+             "Purpur 26.1.2" не похоже на стандартную версионную схему Purpur (там версии вида 1.21.x),
+             уточните точную версию сервера и поставьте сюда совпадающий paper-api. -->
+        <paperapi.version>1.21.1-R0.1-SNAPSHOT</paperapi.version>
+    </properties>
 
-public class MobManager {
+    <repositories>
+        <repository>
+            <id>papermc</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
+        </repository>
+    </repositories>
 
-    private final JavaPlugin plugin;
-    private final File file;
-    private final Map<String, CustomMob> mobs = new LinkedHashMap<>();
+    <dependencies>
+        <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>${paperapi.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 
-    public MobManager(JavaPlugin plugin) {
-        this.plugin = plugin;
-        this.file = new File(plugin.getDataFolder(), "mobs.yml");
-        load();
-    }
-
-    public CustomMob createMob(String id) {
-        CustomMob mob = new CustomMob(id);
-        mobs.put(id.toLowerCase(), mob);
-        save();
-        return mob;
-    }
-
-    public CustomMob getMob(String id) {
-        return mobs.get(id == null ? null : id.toLowerCase());
-    }
-
-    public boolean exists(String id) {
-        return mobs.containsKey(id == null ? null : id.toLowerCase());
-    }
-
-    public Map<String, CustomMob> getAll() {
-        return mobs;
-    }
-
-    public void delete(String id) {
-        mobs.remove(id.toLowerCase());
-        save();
-    }
-
-    public void load() {
-        mobs.clear();
-        if (!file.exists()) return;
-        FileConfiguration cfg = YamlConfiguration.loadConfiguration(file);
-        for (String id : cfg.getKeys(false)) {
-            CustomMob mob = new CustomMob(id);
-            String path = id + ".";
-            mob.setDisplayName(cfg.getString(path + "displayName", id));
-            try {
-                mob.setEntityType(EntityType.valueOf(cfg.getString(path + "entityType", "ZOMBIE")));
-            } catch (IllegalArgumentException ignored) {}
-            mob.setMaxHealth(cfg.getDouble(path + "maxHealth", 20.0));
-            mob.setExpDrop(cfg.getInt(path + "expDrop", 5));
-            mob.setWeapon(matOrAir(cfg.getString(path + "weapon")));
-            mob.setHelmet(matOrAir(cfg.getString(path + "helmet")));
-            mob.setChestplate(matOrAir(cfg.getString(path + "chestplate")));
-            mob.setLeggings(matOrAir(cfg.getString(path + "leggings")));
-            mob.setBoots(matOrAir(cfg.getString(path + "boots")));
-            mobs.put(id.toLowerCase(), mob);
-        }
-    }
-
-    private Material matOrAir(String name) {
-        if (name == null) return Material.AIR;
-        try {
-            return Material.valueOf(name);
-        } catch (IllegalArgumentException e) {
-            return Material.AIR;
-        }
-    }
-
-    public void save() {
-        FileConfiguration cfg = new YamlConfiguration();
-        for (CustomMob mob : mobs.values()) {
-            String path = mob.getId() + ".";
-            cfg.set(path + "displayName", mob.getDisplayName());
-            cfg.set(path + "entityType", mob.getEntityType().name());
-            cfg.set(path + "maxHealth", mob.getMaxHealth());
-            cfg.set(path + "expDrop", mob.getExpDrop());
-            cfg.set(path + "weapon", mob.getWeapon().name());
-            cfg.set(path + "helmet", mob.getHelmet().name());
-            cfg.set(path + "chestplate", mob.getChestplate().name());
-            cfg.set(path + "leggings", mob.getLeggings().name());
-            cfg.set(path + "boots", mob.getBoots().name());
-        }
-        try {
-            if (!plugin.getDataFolder().exists()) plugin.getDataFolder().mkdirs();
-            cfg.save(file);
-        } catch (IOException e) {
-            plugin.getLogger().severe("Не удалось сохранить mobs.yml: " + e.getMessage());
-        }
-    }
-}
+    <build>
+        <finalName>MSMP</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>

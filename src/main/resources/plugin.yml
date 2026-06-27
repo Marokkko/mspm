@@ -1,0 +1,17 @@
+name: MSMP
+version: '1.0.0'
+main: com.msmp.MSMPPlugin
+api-version: '1.21'
+author: You
+description: Кастомные мобы и спавнеры с GUI-редактором
+
+commands:
+  msmp:
+    description: Главная команда плагина MSMP
+    usage: /msmp create mob <id> | /msmp create spawner <id> | /msmp edit <id>
+    permission: msmp.admin
+
+permissions:
+  msmp.admin:
+    description: Доступ к созданию и редактированию мобов/спавнеров
+    default: op
