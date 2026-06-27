@@ -1,47 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.msmp</groupId>
-  <artifactId>MSMP</artifactId>
-  <version>1.0.0</version>
-  <packaging>jar</packaging>
+    <groupId>com.msmp</groupId>
+    <artifactId>MSMP</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
 
-  <properties>
-    <maven.compiler.source>17</maven.compiler.source>
-    <maven.compiler.target>17</maven.compiler.target>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <purpur.version>26.1.2.build.2592-stable</purpur.version>
-  </properties>
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Версия Purpur API. Узнаётся по выводу команды /version в консоли сервера:
+             "Implementing API version 26.1.2.build.2592-stable" -->
+        <purpurapi.version>26.1.2.build.2592-stable</purpurapi.version>
+    </properties>
 
-  <repositories>
-    <repository>
-      <id>purpur</id>
-      <url>https://repo.purpurmc.org/snapshots</url>
-      <releases><enabled>false</enabled></releases>
-      <snapshots><enabled>true</enabled></snapshots>
-    </repository>
-  </repositories>
+    <repositories>
+        <repository>
+            <id>purpurmc</id>
+            <url>https://repo.purpurmc.org/snapshots</url>
+        </repository>
+    </repositories>
 
-  <dependencies>
-    <dependency>
-      <groupId>org.purpurmc.purpur</groupId>
-      <artifactId>purpur-api</artifactId>
-      <version>${purpur.version}</version>
-      <scope>provided</scope>
-    </dependency>
-  </dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>org.purpurmc.purpur</groupId>
+            <artifactId>purpur-api</artifactId>
+            <version>${purpurapi.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 
-  <build>
-    <finalName>MSMP</finalName>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.13.0</version>
-      </plugin>
-    </plugins>
-  </build>
+    <build>
+        <finalName>MSMP</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+            </plugin>
+        </plugins>
+    </build>
 </project>
