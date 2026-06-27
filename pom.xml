@@ -13,8 +13,6 @@
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-    <!-- Use the exact Purpur API build that exists in the repository -->
     <purpur.version>26.1.2.build.2592-stable</purpur.version>
   </properties>
 
@@ -22,17 +20,12 @@
     <repository>
       <id>purpur</id>
       <url>https://repo.purpurmc.org/snapshots</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
+      <releases><enabled>false</enabled></releases>
+      <snapshots><enabled>true</enabled></snapshots>
     </repository>
   </repositories>
 
   <dependencies>
-    <!-- Server API: compile-time only (provided) -->
     <dependency>
       <groupId>org.purpurmc.purpur</groupId>
       <artifactId>purpur-api</artifactId>
