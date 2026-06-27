@@ -25,8 +25,7 @@
         <dependency>
             <groupId>org.purpurmc.purpur</groupId>
             <artifactId>purpur-api</artifactId>
-            <version>${purpur.version}</version>
-            <scope>provided</scope>
+            <version>26.1.2.build.2583-stable</version>
         </dependency>
     </dependencies>
 
