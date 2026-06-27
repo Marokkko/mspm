@@ -18,6 +18,9 @@ public class CustomMob {
     private Material leggings;
     private Material boots;
     private int expDrop;
+    // === НОВЫЕ ПОЛЯ ===
+    private double moveSpeed;       // скорость (0.1 = стандарт зомби, 0.25 = быстрый)
+    private int lootDropChance;     // шанс дропа лута в % (0-100)
 
     public CustomMob(String id) {
         this.id = id;
@@ -30,6 +33,8 @@ public class CustomMob {
         this.leggings = Material.AIR;
         this.boots = Material.AIR;
         this.expDrop = 5;
+        this.moveSpeed = 0.23;
+        this.lootDropChance = 100;
     }
 
     public String getId() { return id; }
@@ -60,4 +65,10 @@ public class CustomMob {
 
     public int getExpDrop() { return expDrop; }
     public void setExpDrop(int expDrop) { this.expDrop = expDrop; }
+
+    public double getMoveSpeed() { return moveSpeed; }
+    public void setMoveSpeed(double moveSpeed) { this.moveSpeed = Math.max(0.05, Math.min(1.0, moveSpeed)); }
+
+    public int getLootDropChance() { return lootDropChance; }
+    public void setLootDropChance(int lootDropChance) { this.lootDropChance = Math.max(0, Math.min(100, lootDropChance)); }
 }

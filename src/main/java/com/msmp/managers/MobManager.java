@@ -66,6 +66,8 @@ public class MobManager {
             mob.setChestplate(matOrAir(cfg.getString(path + "chestplate")));
             mob.setLeggings(matOrAir(cfg.getString(path + "leggings")));
             mob.setBoots(matOrAir(cfg.getString(path + "boots")));
+            mob.setMoveSpeed(cfg.getDouble(path + "moveSpeed", 0.23));
+            mob.setLootDropChance(cfg.getInt(path + "lootDropChance", 100));
             mobs.put(id.toLowerCase(), mob);
         }
     }
@@ -92,6 +94,8 @@ public class MobManager {
             cfg.set(path + "chestplate", mob.getChestplate().name());
             cfg.set(path + "leggings", mob.getLeggings().name());
             cfg.set(path + "boots", mob.getBoots().name());
+            cfg.set(path + "moveSpeed", mob.getMoveSpeed());
+            cfg.set(path + "lootDropChance", mob.getLootDropChance());
         }
         try {
             if (!plugin.getDataFolder().exists()) plugin.getDataFolder().mkdirs();
