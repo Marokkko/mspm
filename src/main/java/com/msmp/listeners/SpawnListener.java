@@ -41,7 +41,7 @@ public class SpawnListener implements Listener {
         entity.setCustomNameVisible(true);
 
         try {
-            entity.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH)
+            entity.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH)
                     .setBaseValue(mob.getMaxHealth());
             entity.setHealth(mob.getMaxHealth());
         } catch (Exception ex) {
