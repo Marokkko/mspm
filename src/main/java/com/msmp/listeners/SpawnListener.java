@@ -16,12 +16,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Random;
 
-/**
- * Применяет настройки CustomMob к реальной сущности на сервере
- * и помечает её тегом, чтобы:
- *  - выдавать кастомный опыт при смерти
- *  - применять шанс дропа лута
- */
 public class SpawnListener implements Listener {
 
     public static NamespacedKey customMobKey(JavaPlugin plugin) {
@@ -29,42 +23,20 @@ public class SpawnListener implements Listener {
     }
 
     private final JavaPlugin plugin;
-    private final Random random = new Random();
+    private final Random rng = new Random();
 
     public SpawnListener(JavaPlugin plugin) {
         this.plugin = plugin;
     }
 
-    /**
-     * Применить настройки кастомного моба к уже созданной сущности.
-     * Вызывается из SpawnerTask после spawnEntity.
-     */
     public void applyCustomMob(LivingEntity entity, CustomMob mob) {
         entity.setCustomName(mob.getDisplayName());
         entity.setCustomNameVisible(true);
 
-        // Здоровье
-        try {
-            AttributeInstance healthAttr = entity.getAttribute(Attribute.MAX_HEALTH);
-            if (healthAttr != null) {
-                healthAttr.setBaseValue(mob.getMaxHealth());
-                entity.setHealth(mob.getMaxHealth());
-            }
-        } catch (Exception ex) {
-            plugin.getLogger().warning("Не удалось задать здоровье мобу " + mob.getId() + ": " + ex.getMessage());
-        }
+        setAttribute(entity, Attribute.MAX_HEALTH, mob.getMaxHealth());
+        entity.setHealth(mob.getMaxHealth());
+        setAttribute(entity, Attribute.MOVEMENT_SPEED, mob.getMoveSpeed());
 
-        // Скорость передвижения
-        try {
-            AttributeInstance speedAttr = entity.getAttribute(Attribute.MOVEMENT_SPEED);
-            if (speedAttr != null) {
-                speedAttr.setBaseValue(mob.getMoveSpeed());
-            }
-        } catch (Exception ex) {
-            plugin.getLogger().warning("Не удалось задать скорость мобу " + mob.getId() + ": " + ex.getMessage());
-        }
-
-        // Экипировка
         EntityEquipment eq = entity.getEquipment();
         if (eq != null) {
             if (mob.getWeapon()     != Material.AIR) eq.setItemInMainHand(new ItemStack(mob.getWeapon()));
@@ -72,7 +44,6 @@ public class SpawnListener implements Listener {
             if (mob.getChestplate() != Material.AIR) eq.setChestplate(new ItemStack(mob.getChestplate()));
             if (mob.getLeggings()   != Material.AIR) eq.setLeggings(new ItemStack(mob.getLeggings()));
             if (mob.getBoots()      != Material.AIR) eq.setBoots(new ItemStack(mob.getBoots()));
-            // Нулевой шанс дропа экипировки (контролируется lootDropChance)
             eq.setItemInMainHandDropChance(0f);
             eq.setHelmetDropChance(0f);
             eq.setChestplateDropChance(0f);
@@ -81,6 +52,15 @@ public class SpawnListener implements Listener {
         }
 
         entity.getPersistentDataContainer().set(customMobKey(plugin), PersistentDataType.STRING, mob.getId());
+    }
+
+    private void setAttribute(LivingEntity entity, Attribute attr, double value) {
+        try {
+            AttributeInstance inst = entity.getAttribute(attr);
+            if (inst != null) inst.setBaseValue(value);
+        } catch (Exception ex) {
+            plugin.getLogger().warning("Не удалось задать " + attr + " мобу: " + ex.getMessage());
+        }
     }
 
     @EventHandler
@@ -93,18 +73,27 @@ public class SpawnListener implements Listener {
         CustomMob mob = msmpPlugin.getMobManager().getMob(mobId);
         if (mob == null) return;
 
-        // Кастомный опыт
+        // Опыт
         e.setDroppedExp(mob.getExpDrop());
 
-        // Шанс дропа ванильного лута (кости, гнилая плоть и т.д.)
-        int chance = mob.getLootDropChance();
-        if (chance <= 0) {
+        // Ванильный дроп — по шансу lootDropChance
+        if (mob.getLootDropChance() <= 0) {
             e.getDrops().clear();
-        } else if (chance < 100) {
-            if (random.nextInt(100) >= chance) {
+        } else if (mob.getLootDropChance() < 100) {
+            if (rng.nextInt(100) >= mob.getLootDropChance()) {
                 e.getDrops().clear();
             }
         }
-        // chance == 100 → ничего не делаем, дроп остаётся
+
+        // Кастомный дроп
+        for (CustomMob.LootEntry entry : mob.getCustomDrops()) {
+            if (rng.nextInt(100) < entry.getChance()) {
+                int amount = entry.getMinAmount();
+                if (entry.getMaxAmount() > entry.getMinAmount()) {
+                    amount += rng.nextInt(entry.getMaxAmount() - entry.getMinAmount() + 1);
+                }
+                e.getDrops().add(new ItemStack(entry.getMaterial(), amount));
+            }
+        }
     }
 }
